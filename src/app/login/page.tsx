@@ -74,7 +74,7 @@ export default function LoginPage() {
         if (profile?.role === "ADMIN") {
           router.push("/admin/dashboard");
         } else {
-          router.push("/");
+          router.push("/portal/dashboard");
         }
       }
     } catch (err: any) {
@@ -217,6 +217,12 @@ export default function LoginPage() {
                 <label className="block text-xs font-semibold text-[#241A33]">
                   Password
                 </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-[11px] font-semibold text-[#6F00FF] hover:underline"
+                >
+                  Forgot Password?
+                </Link>
               </div>
               <Input
                 type="password"

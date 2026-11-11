@@ -28,6 +28,18 @@ export function TopNavbar() {
   const pathname = usePathname();
   const { isSidebarCollapsed, setIsCreateTaskOpen } = useTaskContext();
 
+  // Hide on admin routes, portal routes, and auth screens
+  if (
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/portal") ||
+    pathname === "/login" ||
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password" ||
+    pathname === "/invite"
+  ) {
+    return null;
+  }
+
   const currentLabel = ROUTE_LABELS[pathname] || "Dashboard";
 
   return (

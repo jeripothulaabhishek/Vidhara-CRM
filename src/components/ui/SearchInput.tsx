@@ -7,7 +7,13 @@ import { cn } from "@/lib/utils";
 
 const FILTER_PILLS = ["All", "Branding", "UI/UX", "3D & Motion", "Packaging", "Pitch Deck"];
 
-export function SearchInput({ className }: { className?: string }) {
+export function SearchInput({
+  className,
+  placeholder = "Search tasks, clients, deliverables, briefs...",
+}: {
+  className?: string;
+  placeholder?: string;
+}) {
   const { searchQuery, setSearchQuery, categoryFilter, setCategoryFilter } = useTaskContext();
   const [isFocused, setIsFocused] = useState(false);
 
@@ -28,7 +34,7 @@ export function SearchInput({ className }: { className?: string }) {
         onChange={(e) => setSearchQuery(e.target.value)}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        placeholder="Search tasks, clients, deliverables, briefs..."
+        placeholder={placeholder}
         className="w-full bg-transparent border-none outline-none text-xs md:text-sm text-[#241A33] placeholder:text-[#837C8D]"
       />
 

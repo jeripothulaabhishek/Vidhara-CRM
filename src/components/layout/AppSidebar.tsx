@@ -53,6 +53,18 @@ export function AppSidebar() {
   const { isSidebarCollapsed, toggleSidebar, unreadCount, currentUser, showToast } = useTaskContext();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Hide on admin routes, portal routes, and auth screens
+  if (
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/portal") ||
+    pathname === "/login" ||
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password" ||
+    pathname === "/invite"
+  ) {
+    return null;
+  }
+
   const handleLogout = () => {
     showToast("Signed Out", "You have signed out of Vidhara Dashboard.", "info");
   };

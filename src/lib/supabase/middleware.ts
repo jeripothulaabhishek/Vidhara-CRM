@@ -64,7 +64,50 @@ export async function updateSession(request: NextRequest) {
   });
 
   // Refresh auth session
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const path = request.nextUrl.pathname;
+
+  // 1. Admin route protection: must be logged in with ADMIN role
+  if (path.startsWith("/admin")) {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("next", path);
+      return NextResponse.redirect(url);
+    }
+
+    const role = user.user_metadata?.role;
+    if (role && role !== "ADMIN") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/portal/dashboard";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // 2. Member portal route protection: must be authenticated
+  if (path.startsWith("/portal")) {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("next", path);
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // 3. Redirect authenticated users away from login page
+  if (path === "/login" && user) {
+    const role = user.user_metadata?.role;
+    const url = request.nextUrl.clone();
+    if (role === "ADMIN") {
+      url.pathname = "/admin/dashboard";
+    } else {
+      url.pathname = "/portal/dashboard";
+    }
+    return NextResponse.redirect(url);
+  }
 
   return supabaseResponse;
 }

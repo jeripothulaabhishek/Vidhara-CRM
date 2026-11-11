@@ -88,7 +88,7 @@ export function ProfileDropdown() {
           </div>
 
           <div className="space-y-0.5 text-xs">
-            {isAdmin && (
+            {isAdmin ? (
               <Link
                 href="/admin/dashboard"
                 onClick={() => setIsOpen(false)}
@@ -97,24 +97,33 @@ export function ProfileDropdown() {
                 <LayoutDashboard className="w-4 h-4 text-[#6F00FF]" />
                 Admin Command Center
               </Link>
+            ) : (
+              <Link
+                href="/portal/dashboard"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#6F00FF] font-semibold bg-[#FAF1FD] hover:bg-[#E9B3FB]/20 transition-colors"
+              >
+                <LayoutDashboard className="w-4 h-4 text-[#6F00FF]" />
+                Client Portal Dashboard
+              </Link>
             )}
 
             <Link
-              href="/settings"
+              href={isAdmin ? "/admin/settings" : "/portal/settings"}
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#241A33] hover:bg-[#FAF7FC] hover:text-[#6F00FF] transition-colors"
             >
               <User className="w-4 h-4 text-[#837C8D]" />
-              Creative Profile
+              Account Settings
             </Link>
 
             <Link
-              href={isAdmin ? "/admin/team" : "/team"}
+              href={isAdmin ? "/admin/tasks" : "/portal/tasks"}
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#241A33] hover:bg-[#FAF7FC] hover:text-[#6F00FF] transition-colors"
             >
               <Sparkles className="w-4 h-4 text-[#837C8D]" />
-              Agency Workspace & Team
+              {isAdmin ? "Deliverables Manager" : "My Deliverables"}
             </Link>
 
             <Link
