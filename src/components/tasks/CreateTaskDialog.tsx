@@ -24,13 +24,13 @@ export function CreateTaskDialog() {
 
   if (!isCreateTaskOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
     setIsLoading(true);
-    setTimeout(() => {
-      createTask({
+    try {
+      await createTask({
         title,
         description,
         clientName,
@@ -48,9 +48,10 @@ export function CreateTaskDialog() {
       setDescription("");
       setPinToWeek(false);
       setPinNote("");
-      setIsLoading(false);
       setIsCreateTaskOpen(false);
-    }, 300);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

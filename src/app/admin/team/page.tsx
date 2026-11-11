@@ -20,11 +20,42 @@ import {
 
 export default function AdminTeamPage() {
   const { showToast } = useTaskContext();
+  const [teamMembers, setTeamMembers] = useState(TEAM_MEMBERS);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
   const [inviteRole, setInviteRole] = useState("Visual Designer");
   const [isInviting, setIsInviting] = useState(false);
+
+  // Load live profiles if available
+  const loadProfiles = async () => {
+    try {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      const { data, error } = await supabase.from("profiles").select("*");
+      if (!error && data && data.length > 0) {
+        const mapped = data.map((p) => ({
+          id: p.id,
+          email: p.email,
+          full_name: p.full_name,
+          avatar_url:
+            p.avatar_url ||
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+          role: (p.role === "ADMIN" ? "admin" : "designer") as any,
+          agency_role: p.agency_role || "Creative Specialist",
+          department: p.department || "Design",
+          tasks_count: 5,
+        }));
+        setTeamMembers(mapped);
+      }
+    } catch {
+      // Keep initial members
+    }
+  };
+
+  React.useEffect(() => {
+    loadProfiles();
+  }, []);
 
   const handleSendInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,8 +70,8 @@ export default function AdminTeamPage() {
       setInviteEmail("");
       setInviteName("");
       setIsInviteOpen(false);
+      loadProfiles();
     } else {
-      // If running before Supabase Auth is populated, show informative toast
       showToast("Invite Notice", res.error || "Invite recorded in agency queue.", "info");
       setIsInviteOpen(false);
     }
@@ -60,7 +91,7 @@ export default function AdminTeamPage() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {TEAM_MEMBERS.map((member) => (
+        {teamMembers.map((member) => (
           <div
             key={member.id}
             className="p-5 rounded-3xl bg-white border border-[#F0E6F3] shadow-sm hover:shadow-md hover:border-[#E9B3FB] transition-all flex flex-col justify-between"
@@ -206,3 +237,4 @@ export default function AdminTeamPage() {
     </main>
   );
 }
+

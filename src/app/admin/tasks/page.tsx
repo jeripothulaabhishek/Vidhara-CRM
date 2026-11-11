@@ -66,7 +66,13 @@ function AdminTasksContent() {
     // Status
     if (selectedStatus !== "ALL") {
       const normalizedStatus = t.status.toUpperCase();
-      if (normalizedStatus !== selectedStatus) return false;
+      if (selectedStatus === "NEW" || selectedStatus === "ACCEPTED") {
+        if (normalizedStatus !== "BACKLOG" && normalizedStatus !== "NEW" && normalizedStatus !== "ACCEPTED") {
+          return false;
+        }
+      } else if (normalizedStatus !== selectedStatus) {
+        return false;
+      }
     }
 
     // Priority

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { useTaskContext } from "@/context/TaskContext";
 import { TaskStatusBadge } from "./TaskStatusBadge";
@@ -16,10 +16,9 @@ import {
   MessageSquare,
   Paperclip,
   CheckCircle2,
-  RotateCcw,
   Trash2,
   Send,
-  ExternalLink,
+  UploadCloud,
 } from "lucide-react";
 import { CATEGORY_COLORS, cn } from "@/lib/utils";
 import { TaskStatus } from "@/types/database";
@@ -33,10 +32,13 @@ export function TaskDetailModal() {
     togglePinTask,
     deleteTask,
     addCommentToTask,
+    uploadTaskFile,
     showToast,
   } = useTaskContext();
 
   const [commentInput, setCommentInput] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [localComments, setLocalComments] = useState<
     { id: string; user: string; text: string; time: string; avatar: string }[]
   >([
@@ -45,7 +47,8 @@ export function TaskDetailModal() {
       user: "Alex Rivera",
       text: "Please verify Apple Pay biometric token exchange and error state styling before submitting for client signoff.",
       time: "2 hours ago",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      avatar:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
     },
   ]);
 
@@ -60,7 +63,7 @@ export function TaskDetailModal() {
     border: "border-[#F0E6F3]",
   };
 
-  const handleAddComment = (e: React.FormEvent) => {
+  const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentInput.trim()) return;
 
@@ -69,12 +72,22 @@ export function TaskDetailModal() {
       user: "Alex Rivera",
       text: commentInput.trim(),
       time: "Just now",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      avatar:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
     };
 
     setLocalComments((prev) => [...prev, newComment]);
-    addCommentToTask(task.id, commentInput.trim());
+    await addCommentToTask(task.id, commentInput.trim());
     setCommentInput("");
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    await uploadTaskFile(task.id, file, true);
+    setIsUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
@@ -100,52 +113,43 @@ export function TaskDetailModal() {
             >
               {task.category}
             </span>
-            <PriorityBadge priority={task.priority} size="sm" />
-            <TaskStatusBadge status={task.status} size="sm" />
+            <TaskStatusBadge status={task.status} />
+            <PriorityBadge priority={task.priority} />
           </div>
 
           <div className="flex items-center gap-1.5">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => togglePinTask(task.id)}
-              className={cn(
-                "p-2 rounded-xl transition-colors",
-                task.is_pinned
-                  ? "bg-[#6F00FF]/10 text-[#6F00FF]"
-                  : "text-[#837C8D] hover:bg-[#FAF7FC]"
-              )}
-              title={task.is_pinned ? "Unpin task" : "Pin to weekly priorities"}
+              className={task.is_pinned ? "text-[#6F00FF]" : "text-[#837C8D]"}
+              title="Pin to weekly schedule"
             >
               <Pin className={cn("w-4 h-4", task.is_pinned && "fill-current")} />
-            </button>
-
-            <button
-              onClick={closeTaskDetail}
-              className="p-2 rounded-xl text-[#837C8D] hover:text-[#241A33] hover:bg-[#FAF7FC] transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={closeTaskDetail}>
+              <X className="w-4 h-4" />
+            </Button>
           </div>
         </div>
 
-        {/* Task Title & Client Banner */}
+        {/* Task Title & Meta */}
         <div className="mt-4">
-          <h2 className="text-xl font-bold text-[#241A33] leading-snug">
+          <h2 className="text-xl font-extrabold text-[#241A33] tracking-tight">
             {task.title}
           </h2>
 
-          <div className="flex items-center gap-4 mt-3 text-xs text-[#837C8D] flex-wrap">
+          <div className="flex flex-wrap items-center gap-4 mt-2.5 text-xs text-[#837C8D]">
             <div className="flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-[#6F00FF]" />
-              <span>Due: <strong className="text-[#241A33]">{task.due_date}</strong></span>
+              <span>Due {task.due_date}</span>
             </div>
-
             {task.scheduled_time && (
               <div className="flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-[#6F00FF]" />
-                <span>Slot: <strong className="text-[#241A33]">{task.scheduled_time} ({task.duration_minutes || 60}m)</strong></span>
+                <span>Scheduled {task.scheduled_time} ({task.duration_minutes || 60}m)</span>
               </div>
             )}
-
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#6F00FF]" />
               <span>Client: <strong className="text-[#241A33]">{task.client.brand_name}</strong></span>
@@ -217,19 +221,48 @@ export function TaskDetailModal() {
           </div>
         </div>
 
-        {/* Attachments Section */}
-        {task.attachments && task.attachments.length > 0 && (
-          <div className="mt-5 space-y-2">
-            <h4 className="text-xs font-bold text-[#241A33] uppercase tracking-wider">
-              Deliverable Files ({task.attachments.length})
+        {/* Deliverable Files Section */}
+        <div className="mt-5 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-bold text-[#241A33] uppercase tracking-wider flex items-center gap-1.5">
+              <Paperclip className="w-3.5 h-3.5 text-[#6F00FF]" />
+              Deliverable Files ({task.attachments?.length || 0})
             </h4>
+            <div>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                className="hidden"
+                accept="image/*,application/pdf"
+              />
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={isUploading}
+                onClick={() => fileInputRef.current?.click()}
+                className="h-8 text-xs"
+              >
+                <UploadCloud className="w-3.5 h-3.5 text-[#6F00FF]" />
+                <span>{isUploading ? "Uploading..." : "Upload Deliverable"}</span>
+              </Button>
+            </div>
+          </div>
+
+          {task.attachments && task.attachments.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {task.attachments.map((att) => (
                 <FilePreview key={att.id} attachment={att} />
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="p-3 rounded-2xl bg-[#FAF7FC] border border-[#F0E6F3] text-center">
+              <p className="text-xs text-[#837C8D]">
+                No files uploaded yet. Files upload securely to the Supabase <code>task-files</code> storage bucket.
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Comments & Revision Feedback Thread */}
         <div className="mt-5 pt-4 border-t border-[#F0E6F3] space-y-3">
@@ -317,4 +350,3 @@ export function TaskDetailModal() {
     </div>
   );
 }
-

@@ -32,7 +32,7 @@ export default function AdminTaskDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const taskId = params.id as string;
-  const { tasks, updateTaskStatus, showToast } = useTaskContext();
+  const { tasks, updateTaskStatus, addCommentToTask, showToast } = useTaskContext();
 
   const task = tasks.find((t) => t.id === taskId) || tasks[0];
 
@@ -47,22 +47,21 @@ export default function AdminTaskDetailsPage() {
     },
   ]);
 
-  const handleAddComment = (e: React.FormEvent) => {
+  const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentText.trim()) return;
 
-    setComments((prev) => [
-      ...prev,
-      {
-        id: `c-${Date.now()}`,
-        author: "Alex Rivera (Admin)",
-        text: commentText.trim(),
-        time: "Just now",
-        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-      },
-    ]);
+    const newComment = {
+      id: `c-${Date.now()}`,
+      author: "Alex Rivera (Admin)",
+      text: commentText.trim(),
+      time: "Just now",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    };
+
+    setComments((prev) => [...prev, newComment]);
+    await addCommentToTask(task.id, commentText.trim());
     setCommentText("");
-    showToast("Comment Recorded", "Feedback logged to task audit trail.", "info");
   };
 
   return (
@@ -254,3 +253,4 @@ export default function AdminTaskDetailsPage() {
     </main>
   );
 }
+
