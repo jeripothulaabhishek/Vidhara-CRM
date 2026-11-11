@@ -42,8 +42,20 @@ const ADMIN_NAV = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
-  const { isSidebarCollapsed, toggleSidebar, unreadCount, showToast } = useTaskContext();
+  const { isSidebarCollapsed, toggleSidebar, unreadCount, currentUser, showToast } = useTaskContext();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const user = currentUser || CURRENT_USER;
+
+  const handleLogout = async () => {
+    try {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch {}
+    showToast("Signed Out", "You have signed out of Vidhara Dashboard.", "info");
+    window.location.href = "/login";
+  };
 
   return (
     <>
@@ -156,6 +168,20 @@ export function AdminSidebar() {
 
         {/* Footer */}
         <div className="p-3 border-t border-[#2C1942] space-y-2">
+          {/* Switch to Designer Workspace */}
+          {!isSidebarCollapsed && (
+            <Link
+              href="/"
+              className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-[#221333] hover:bg-[#2C1942] border border-[#351C50] text-[11px] font-semibold text-[#A69BB5] hover:text-white transition-all"
+            >
+              <span className="flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#E9B3FB]" />
+                Switch to Designer View
+              </span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          )}
+
           <div
             className={cn(
               "flex items-center gap-3 p-2 rounded-2xl bg-[#221333] border border-[#351C50]",
@@ -164,8 +190,8 @@ export function AdminSidebar() {
           >
             <div className="relative w-9 h-9 rounded-xl overflow-hidden ring-1 ring-[#6F00FF] shrink-0">
               <Image
-                src={CURRENT_USER.avatar_url}
-                alt={CURRENT_USER.full_name}
+                src={user.avatar_url}
+                alt={user.full_name}
                 fill
                 className="object-cover"
               />
@@ -173,14 +199,27 @@ export function AdminSidebar() {
             {!isSidebarCollapsed && (
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold text-white truncate">
-                  {CURRENT_USER.full_name}
+                  {user.full_name}
                 </p>
                 <span className="text-[10px] text-[#E9B3FB] font-semibold">
-                  Agency Owner
+                  Studio Administrator
                 </span>
               </div>
             )}
           </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2 rounded-2xl text-xs text-[#D84B66] hover:bg-[#D84B66]/10 transition-colors",
+              isSidebarCollapsed && "justify-center px-0"
+            )}
+            title="Log out"
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            {!isSidebarCollapsed && <span>Log Out</span>}
+          </button>
         </div>
       </aside>
     </>

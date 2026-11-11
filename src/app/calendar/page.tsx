@@ -9,7 +9,8 @@ import { Plus, Sparkles, Filter, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function CalendarPage() {
-  const { isSidebarCollapsed, setIsCreateTaskOpen, showToast } = useTaskContext();
+  const { isSidebarCollapsed, setIsCreateTaskOpen, currentUser, showToast } = useTaskContext();
+  const firstName = currentUser?.full_name ? currentUser.full_name.split(" ")[0] : "Creative";
 
   return (
     <main
@@ -19,7 +20,7 @@ export default function CalendarPage() {
       )}
     >
       <PageHeader
-        title="Stay up to date, Alex"
+        title={`Stay up to date, ${firstName}`}
         subtitle="Manage seven-day studio schedules, production deadlines, and client review sessions."
         badge={
           <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#E9B3FB]/30 text-[#3B0270] border border-[#E9B3FB]">
