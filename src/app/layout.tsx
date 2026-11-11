@@ -6,6 +6,7 @@ import { TopNavbar } from "@/components/layout/TopNavbar";
 import { Toaster } from "@/components/ui/Toast";
 import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
 import { TaskDetailModal } from "@/components/tasks/TaskDetailModal";
+import { CommandPalette } from "@/components/ui/CommandPalette";
 
 export const metadata: Metadata = {
   title: "VIDHARA DASHBOARD — Creative Agency CRM & Task Management",
@@ -36,6 +37,7 @@ export default function RootLayout({
             {/* Global Modals & Notifications */}
             <CreateTaskDialog />
             <TaskDetailModal />
+            <CommandPalette />
             <Toaster />
           </div>
         </TaskProvider>

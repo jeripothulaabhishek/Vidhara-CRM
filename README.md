@@ -75,3 +75,4 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 4. Click **Deploy**.
+
